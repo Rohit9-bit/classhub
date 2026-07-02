@@ -1,6 +1,7 @@
 import { prisma } from "@/lib/prisma";
 import bcrypt from "bcrypt";
 import { sendVerificationEmail } from "@/lib/resend";
+import { errorResponse, successResponse } from "@/lib/response";
 
 interface requestedDataTypes {
   name: string;
@@ -11,7 +12,6 @@ interface requestedDataTypes {
 export async function POST(req: Request) {
   try {
     const { name, email, password }: requestedDataTypes = await req.json();
-    console.log("Received data:", { name, email, password });
     const existingEmail = await prisma.user.findFirst({
       where: {
         email: email,
@@ -22,12 +22,9 @@ export async function POST(req: Request) {
     });
 
     if (existingEmail) {
-      return Response.json(
-        {
-          success: false,
-          message: "User with this email already exists.",
-        },
-        { status: 400 },
+      return errorResponse(
+        "Email already exists. Please use a different email.",
+        400,
       );
     }
 
@@ -48,13 +45,7 @@ export async function POST(req: Request) {
     );
 
     if (statusOfEmail.success === false) {
-      return Response.json(
-        {
-          success: false,
-          message: "Failed to send verification email.",
-        },
-        { status: 500 },
-      );
+      return errorResponse("Error sending verification email", 500);
     }
 
     const user = await prisma.user.create({
@@ -67,23 +58,9 @@ export async function POST(req: Request) {
       },
     });
 
-    return Response.json(
-      {
-        success: true,
-        message: "User Registered Successfully",
-        data: user,
-      },
-      { status: 200 },
-    );
-  } catch (error) {
+    return successResponse({ message: "User created successfully" }, 201);
+  } catch (error: any) {
     console.log(error);
-    return Response.json(
-      {
-        success: false,
-        message: "Error Registering User: ",
-        error,
-      },
-      { status: 500 },
-    );
+    return errorResponse("Error registering user", 500);
   }
 }

@@ -10,8 +10,14 @@ export async function proxy(req: NextRequest) {
   if(token && (url.pathname === "/" || url.pathname === "/sign-in" || url.pathname === "/sign-up")){
     return NextResponse.redirect(new URL("/dashboard", req.url));
   }
+
+  if(!token && (url.pathname === "/dashboard")){
+    return NextResponse.redirect(new URL("/sign-in", req.url));
+  }
+
+  return NextResponse.next();
 }
 
 export const config = {
-  matcher: ["/", "/sign-in", "/sign-up"],
+  matcher: ["/", "/sign-in", "/sign-up", "/dashboard/:path*"],
 };

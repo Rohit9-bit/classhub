@@ -1,4 +1,6 @@
 import { prisma } from "@/lib/prisma";
+import { errorResponse, successResponse } from "@/lib/response";
+import { ApiResponse } from "@/types/ApiResponse";
 
 interface requestedDataTypes {
   email: string;
@@ -19,23 +21,11 @@ export async function POST(req: Request) {
     });
 
     if (!record || record.verifyCode !== otp) {
-      return Response.json(
-        {
-          success: false,
-          message: "Invalid Otp",
-        },
-        { status: 403 },
-      );
+      return errorResponse("Invalid verification code", 400);
     }
 
     if (!record.verifyCodeExpiry || record.verifyCodeExpiry < new Date()) {
-      return Response.json(
-        {
-          success: false,
-          message: "Verification code expired",
-        },
-        { status: 403 },
-      );
+      return errorResponse("Verification code expired", 403);
     }
 
     await prisma.user.update({
@@ -49,20 +39,8 @@ export async function POST(req: Request) {
       },
     });
 
-    return Response.json(
-      {
-        success: true,
-        message: "User Verified Successfully",
-      },
-      { status: 200 },
-    );
+    return successResponse({ message: "User verified successfully" }, 200);
   } catch (error) {
-    return Response.json(
-      {
-        success: false,
-        message: "An error occurred while verifying the user",
-      },
-      { status: 500 },
-    );
+    return errorResponse("Error verifying user", 500);
   }
 }

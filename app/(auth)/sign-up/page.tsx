@@ -7,7 +7,7 @@ import { toast } from "sonner";
 import * as z from "zod";
 import axios from "axios";
 
-import { RefreshCwIcon } from "lucide-react";
+import { Loader } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
   Card,
@@ -52,10 +52,9 @@ const OtpFormSchema = z.object({
     .regex(/^\d+$/, "OTP must contain only digits."),
 });
 
-export default function SignInPage() {
+export default function SignUpPage() {
   const [email, setEmail] = React.useState("");
   const [step, setStep] = React.useState<"signup" | "otp">("signup");
-  const [otp, setOtp] = React.useState("");
   const [isLoading, setIsLoading] = React.useState(false);
 
   const form = useForm<z.infer<typeof SignUpFormSchema>>({
@@ -75,39 +74,46 @@ export default function SignInPage() {
   });
 
   async function onSubmit(data: z.infer<typeof SignUpFormSchema>) {
-    console.log(data);
     try {
       setEmail(data.email);
+      setIsLoading(true);
       const response = await axios.post("/api/sign-up", data);
-      console.log(response.data);
       if (response.data.success) {
         toast.success(
           "An OTP has been sent to your email address. Please check your inbox.",
         );
+      } else {
+        toast.error(
+          response.data.message || "Failed to send OTP. Please try again.",
+        );
       }
       setStep("otp");
-    } catch (error) {
-      console.error(error);
-      toast.error("Something went wrong. Please try again.");
+    } catch (error: any) {
+      toast.error(
+        error.response?.data.error || "Failed to send OTP. Please try again.",
+      );
+    } finally {
+      setIsLoading(false);
     }
   }
 
   async function onOtpSubmit(data: z.infer<typeof OtpFormSchema>) {
-    console.log(data);
     try {
-      setOtp(data.otp);
+      setIsLoading(true);
       const response = await axios.post("/api/verify-otp", {
         email,
         otp: data.otp,
       });
-      console.log(response.data);
 
       if (response.data.success) {
         toast.success("OTP verified successfully!");
       }
-    } catch (error) {
-      console.error(error);
-      toast.error("Failed to verify OTP. Please try again.");
+    } catch (error: any) {
+      toast.error(
+        error.response?.data.error || "Failed to verify OTP. Please try again."
+      );
+    } finally {
+      setIsLoading(false);
     }
   }
 
@@ -219,17 +225,19 @@ export default function SignInPage() {
               <Button
                 type="submit"
                 form="signup-form"
+                disabled={isLoading}
                 className="w-full rounded-sm shadow-none border border-gray-300 my-0 py-2"
               >
-                Create Account
+                {isLoading ? (
+                  <Loader className="mr-2 h-4 w-4 animate-spin" />
+                ) : (
+                  "Create Account"
+                )}
               </Button>
               <div>
                 <p className="text-gray-500 mt-2">
                   Already have an account?{" "}
-                  <a
-                    href="/(auth)/sign-in"
-                    className="text-blue-500 hover:underline"
-                  >
+                  <a href="/sign-in" className="text-blue-500 hover:underline">
                     Sign in
                   </a>
                 </p>
@@ -290,7 +298,10 @@ export default function SignInPage() {
                         <FieldError errors={[fieldState.error]} />
                       )}
                       <FieldDescription>
-                        <a href="/(auth)/sign-up" className="text-blue-500 hover:underline">
+                        <a
+                          href="/(auth)/sign-up"
+                          className="text-blue-500 hover:underline"
+                        >
                           I no longer have access to this email address.
                         </a>
                       </FieldDescription>
@@ -306,7 +317,11 @@ export default function SignInPage() {
                   className="w-full"
                   form="otp-verification-form"
                 >
-                  Verify
+                  {isLoading ? (
+                    <Loader className="mr-2 h-4 w-4 animate-spin" />
+                  ) : (
+                    "Verify OTP"
+                  )}
                 </Button>
                 <div className="text-sm text-muted-foreground">
                   Having trouble signing in?{" "}

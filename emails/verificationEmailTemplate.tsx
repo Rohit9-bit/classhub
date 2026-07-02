@@ -1,4 +1,3 @@
-// emails/OtpVerificationEmail.tsx
 import * as React from "react";
 
 interface OtpVerificationEmailProps {

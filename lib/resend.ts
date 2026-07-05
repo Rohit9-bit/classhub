@@ -10,19 +10,31 @@ export async function sendVerificationEmail(
   email: string,
 ): Promise<ApiResponse> {
   try {
-    await resend.emails.send({
+    const response = await resend.emails.send({
       from: "Acme <onboarding@resend.dev>",
       to: email,
       subject: "ClassHub Verification Code",
       react: OtpVerificationEmail({ name, otp: verifyCode }),
     });
 
+    if (response.error) {
+      return {
+        success: false,
+        message: response.error.message || "Failed to send verification email",
+        status: 500,
+      };
+    }
+
     return {
       success: true,
-      messages: "Verification email has been send successfully",
+      message: "Verification email has been sent successfully",
+      status: 200,
     };
   } catch (error) {
-    console.log("Error Sending Verification Code", error);
-    return { success: false, messages: "Failed to send verification email" };
+    return {
+      success: false,
+      message: "Failed to send verification email",
+      status: 500,
+    };
   }
 }

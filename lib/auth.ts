@@ -1,10 +1,37 @@
-type Role = keyof typeof ROLES;
+export type Role = keyof typeof ROLES;
 type Permission = (typeof ROLES)[Role][number];
 
 const ROLES = {
-  OWNER: ["view", "create", "edit", "delete", "manage-members"],
-  ADMIN: ["view", "create", "edit", "delete"],
-  MEMBER: ["view", "create", "edit"],
+  OWNER: [
+    "view:all",
+    "create:organization",
+    "edit:organization",
+    "delete:organization",
+    "manage-members:organization",
+    "create:subject",
+    "edit:subject",
+    "delete:subject",
+    "create:unit",
+    "edit:unit",
+    "delete:unit",
+    "create:topic",
+    "edit:topic",
+    "delete:topic",
+  ],
+  ADMIN: [
+    "view:all",
+    "edit:organization",
+    "create:subject",
+    "edit:subject",
+    "delete:subject",
+    "create:unit",
+    "edit:unit",
+    "delete:unit",
+    "create:topic",
+    "edit:topic",
+    "delete:topic",
+  ],
+  MEMBER: ["view:all"],
 } as const;
 
 export function hasPermission(

@@ -7,11 +7,19 @@ export async function proxy(req: NextRequest) {
   const token = await getToken({ req });
   const url = req.nextUrl.clone();
 
-  if(token && (url.pathname === "/" || url.pathname === "/sign-in" || url.pathname === "/sign-up")){
+  if (
+    token &&
+    (url.pathname === "/" ||
+      url.pathname === "/sign-in" ||
+      url.pathname === "/sign-up")
+  ) {
     return NextResponse.redirect(new URL("/dashboard", req.url));
   }
 
-  if(!token && (url.pathname === "/dashboard")){
+  if (
+    !token &&
+    (url.pathname === "/dashboard/:path*" || url.pathname === "/dashboard")
+  ) {
     return NextResponse.redirect(new URL("/sign-in", req.url));
   }
 

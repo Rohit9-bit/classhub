@@ -48,7 +48,7 @@ export async function POST(req: Request) {
       return errorResponse("Error sending verification email", 500);
     }
 
-    const user = await prisma.user.create({
+    await prisma.user.create({
       data: {
         name,
         email,
